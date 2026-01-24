@@ -1,42 +1,69 @@
-import { useState, useEffect, useCallback } from 'react';
-import { mockEvents } from '../utils/mockData';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { mockEvents as fallbackEvents } from '../utils/mockData';
 
 export const useWebSocket = () => {
     const [connected, setConnected] = useState(false);
     const [events, setEvents] = useState([]);
     const [messageHistory, setMessageHistory] = useState([]);
+    const wsRef = useRef(null);
 
     useEffect(() => {
-        // Simulate connection
-        const timer = setTimeout(() => {
-            setConnected(true);
-        }, 1000);
+        let ws;
+        try {
+            ws = new WebSocket('ws://localhost:3000/ws');
+            wsRef.current = ws;
 
-        // Initial load of mock events
-        setEvents(mockEvents.slice(0, 10));
-
-        // Simulate incoming events
-        const interval = setInterval(() => {
-            const newEvent = {
-                ...mockEvents[Math.floor(Math.random() * mockEvents.length)],
-                id: Math.random().toString(36).substring(7),
-                timestamp: new Date().toISOString()
+            ws.onopen = () => {
+                console.log('Connected to AutoFlow Backend');
+                setConnected(true);
             };
-            setEvents(prev => [newEvent, ...prev].slice(0, 50));
-        }, 5000);
+
+            ws.onmessage = (event) => {
+                try {
+                    const payload = JSON.parse(event.data);
+
+                    if (payload.type === 'connected') {
+                        console.log(payload.message);
+                    } else if (payload.type === 'blockchain_event' || payload.type === 'task_update') {
+                        setEvents(prev => [payload, ...prev].slice(0, 50));
+                    }
+                } catch (e) {
+                    console.error('Failed to parse WS message', e);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected from AutoFlow Backend');
+                setConnected(false);
+            };
+
+            ws.onerror = (err) => {
+                console.error('WebSocket error:', err);
+                setConnected(false);
+            };
+
+        } catch (e) {
+            console.error('WebSocket connection failed:', e);
+            // Fallback to mock data if backend not running
+            setEvents(fallbackEvents.slice(0, 10));
+        }
 
         return () => {
-            clearTimeout(timer);
-            clearInterval(interval);
+            if (ws) ws.close();
         };
     }, []);
 
     const sendMessage = useCallback((msg) => {
-        console.log('Sending message:', msg);
-        setMessageHistory(prev => [...prev, { dir: 'out', msg, time: new Date() }]);
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify(msg));
+            setMessageHistory(prev => [...prev, { dir: 'out', msg, time: new Date() }]);
+        } else {
+            console.warn('WebSocket not connected');
+        }
     }, []);
 
     const disconnect = useCallback(() => {
+        if (wsRef.current) wsRef.current.close();
         setConnected(false);
     }, []);
 

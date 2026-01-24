@@ -1,0 +1,149 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/devansh/Desktop/Works/codes/autoflow/autoflow-backend/contracts/EscrowContract.sol": {
+      "lastModificationDate": 1769250000389,
+      "contentHash": "9dbfd86440284682ff67f29782358a6d",
+      "sourceName": "contracts/EscrowContract.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "EscrowContract"
+      ]
+    },
+    "/Users/devansh/Desktop/Works/codes/autoflow/autoflow-backend/contracts/PaymentSettlement.sol": {
+      "lastModificationDate": 1769260475010,
+      "contentHash": "84a12bba61599e94bf203dc387dd3ae6",
+      "sourceName": "contracts/PaymentSettlement.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "PaymentSettlement"
+      ]
+    },
+    "/Users/devansh/Desktop/Works/codes/autoflow/autoflow-backend/contracts/ReputationSystem.sol": {
+      "lastModificationDate": 1769260209455,
+      "contentHash": "be907cfe422cef8dcfb9449b5fd1aa14",
+      "sourceName": "contracts/ReputationSystem.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "ReputationSystem"
+      ]
+    },
+    "/Users/devansh/Desktop/Works/codes/autoflow/autoflow-backend/contracts/TaskRegistry.sol": {
+      "lastModificationDate": 1769260193704,
+      "contentHash": "b982e796698c42252ad5afc0e5026239",
+      "sourceName": "contracts/TaskRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "TaskRegistry"
+      ]
+    }
+  }
+}

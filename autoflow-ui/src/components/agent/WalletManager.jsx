@@ -1,11 +1,123 @@
-import React, { useState } from 'react';
-import { Wallet, ArrowUpRight, ArrowDownLeft, CreditCard, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Wallet, ArrowUpRight, ArrowDownLeft, CreditCard, Loader2 } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { formatAmount } from '../../utils/formatters';
+import { ethers } from 'ethers';
+
+// PaymentSettlement Contract Address (deployed on Monad Testnet)
+const PAYMENT_SETTLEMENT_ADDRESS = '0x5fD4b10bFb57c3D092Fcbfa7b731dE9205544579';
+
+// PaymentSettlement ABI (only the functions we need)
+const PAYMENT_SETTLEMENT_ABI = [
+    'function deposit() external payable',
+    'function withdraw(uint256 amount) external',
+    'function getBalance(address user) external view returns (uint256)',
+    'event Deposited(address indexed user, uint256 amount)',
+    'event Withdrawn(address indexed user, uint256 amount)'
+];
 
 const WalletManager = () => {
-    const { balance, address } = useWallet();
+    const { balance, address, connected } = useWallet();
     const [activeTab, setActiveTab] = useState('deposit');
+    const [amount, setAmount] = useState('');
+    const [recipientAddress, setRecipientAddress] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [txStatus, setTxStatus] = useState(null);
+    const [contractBalance, setContractBalance] = useState('0');
+
+    // Fetch contract balance on load and when address changes
+    useEffect(() => {
+        if (address && connected) {
+            fetchContractBalance();
+        }
+    }, [address, connected]);
+
+    const fetchContractBalance = async () => {
+        try {
+            if (!window.ethereum) return;
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const contract = new ethers.Contract(PAYMENT_SETTLEMENT_ADDRESS, PAYMENT_SETTLEMENT_ABI, provider);
+            const bal = await contract.getBalance(address);
+            setContractBalance(ethers.formatEther(bal));
+        } catch (error) {
+            console.error('Error fetching contract balance:', error);
+        }
+    };
+
+    const handleDeposit = async () => {
+        if (!amount || parseFloat(amount) <= 0) {
+            setTxStatus({ type: 'error', message: 'Please enter a valid amount' });
+            return;
+        }
+
+        setIsLoading(true);
+        setTxStatus(null);
+
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new ethers.Contract(PAYMENT_SETTLEMENT_ADDRESS, PAYMENT_SETTLEMENT_ABI, signer);
+
+            const tx = await contract.deposit({
+                value: ethers.parseEther(amount)
+            });
+
+            setTxStatus({ type: 'pending', message: 'Transaction pending...' });
+
+            await tx.wait();
+
+            setTxStatus({ type: 'success', message: 'Deposit successful!' });
+            setAmount('');
+            await fetchContractBalance();
+        } catch (error) {
+            console.error('Deposit error:', error);
+            setTxStatus({ type: 'error', message: error.message || 'Transaction failed' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleWithdraw = async () => {
+        if (!amount || parseFloat(amount) <= 0) {
+            setTxStatus({ type: 'error', message: 'Please enter a valid amount' });
+            return;
+        }
+
+        setIsLoading(true);
+        setTxStatus(null);
+
+        try {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+            const contract = new ethers.Contract(PAYMENT_SETTLEMENT_ADDRESS, PAYMENT_SETTLEMENT_ABI, signer);
+
+            const tx = await contract.withdraw(ethers.parseEther(amount));
+
+            setTxStatus({ type: 'pending', message: 'Transaction pending...' });
+
+            await tx.wait();
+
+            setTxStatus({ type: 'success', message: 'Withdrawal successful!' });
+            setAmount('');
+            await fetchContractBalance();
+        } catch (error) {
+            console.error('Withdraw error:', error);
+            setTxStatus({ type: 'error', message: error.message || 'Transaction failed' });
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleMaxClick = () => {
+        if (activeTab === 'deposit') {
+            // Use wallet balance minus a small buffer for gas
+            const maxAmount = Math.max(0, parseFloat(balance) - 0.01);
+            setAmount(maxAmount.toFixed(4));
+        } else {
+            // Use contract balance
+            setAmount(contractBalance);
+        }
+    };
 
     const getTabClass = (tab) => {
         const base = "flex-1 py-2 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2 ";
@@ -15,6 +127,13 @@ const WalletManager = () => {
     const formattedAddress = address
         ? address.substring(0, 6) + "..." + address.substring(address.length - 4)
         : 'Not Connected';
+
+    const getTxStatusClass = () => {
+        if (!txStatus) return '';
+        if (txStatus.type === 'success') return 'text-green-400 bg-green-500/10';
+        if (txStatus.type === 'error') return 'text-red-400 bg-red-500/10';
+        return 'text-yellow-400 bg-yellow-500/10';
+    };
 
     return (
         <div className="bg-dark-900 border border-dark-700 rounded-xl shadow-lg p-6">
@@ -40,11 +159,11 @@ const WalletManager = () => {
                     <div className="flex gap-4 text-xs">
                         <div className="flex items-center gap-1 text-gray-300">
                             <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            Available: {formatAmount(balance * 0.8)}
+                            Wallet: {formatAmount(balance)}
                         </div>
                         <div className="flex items-center gap-1 text-gray-300">
                             <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-                            Locked in Escrow: {formatAmount(balance * 0.2)}
+                            In Contract: {formatAmount(contractBalance)}
                         </div>
                     </div>
                 </div>
@@ -74,10 +193,19 @@ const WalletManager = () => {
                     <div className="relative">
                         <input
                             type="number"
+                            step="0.001"
+                            min="0"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
                             className="w-full bg-dark-800 border border-dark-700 rounded-lg p-3 text-white focus:ring-1 focus:ring-primary-500 outline-none"
+                            disabled={isLoading}
                         />
-                        <button className="absolute right-2 top-2 text-xs bg-dark-700 hover:bg-dark-600 px-2 py-1 rounded text-primary-400 transition-colors">
+                        <button
+                            onClick={handleMaxClick}
+                            className="absolute right-2 top-2 text-xs bg-dark-700 hover:bg-dark-600 px-2 py-1 rounded text-primary-400 transition-colors"
+                            disabled={isLoading}
+                        >
                             MAX
                         </button>
                     </div>
@@ -88,8 +216,11 @@ const WalletManager = () => {
                         <label className="block text-sm text-gray-400 mb-2">Recipient Address</label>
                         <input
                             type="text"
-                            placeholder="0x..."
+                            value={recipientAddress}
+                            onChange={(e) => setRecipientAddress(e.target.value)}
+                            placeholder={address || "0x..."}
                             className="w-full bg-dark-800 border border-dark-700 rounded-lg p-3 text-white focus:ring-1 focus:ring-primary-500 outline-none font-mono text-sm"
+                            disabled={isLoading}
                         />
                     </div>
                 )}
@@ -99,8 +230,26 @@ const WalletManager = () => {
                     <span className="text-white font-mono">~0.00042 MON</span>
                 </div>
 
-                <button className="w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary-500/20">
-                    {activeTab === 'deposit' ? 'Add Funds' : 'Withdraw Funds'}
+                {/* Transaction Status */}
+                {txStatus && (
+                    <div className={"rounded-lg p-3 text-sm " + getTxStatusClass()}>
+                        {txStatus.message}
+                    </div>
+                )}
+
+                <button
+                    onClick={activeTab === 'deposit' ? handleDeposit : handleWithdraw}
+                    disabled={isLoading || !connected}
+                    className="w-full py-3 bg-primary-600 hover:bg-primary-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-primary-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                    {isLoading ? (
+                        <>
+                            <Loader2 size={18} className="animate-spin" />
+                            Processing...
+                        </>
+                    ) : (
+                        activeTab === 'deposit' ? 'Deposit to Contract' : 'Withdraw from Contract'
+                    )}
                 </button>
             </div>
         </div>

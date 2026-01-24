@@ -35,8 +35,15 @@ const WalletConnect = () => {
                                     Monad Mainnet
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="font-bold text-lg text-white">{formatAddress(address)}</span>
+                            <div className="flex flex-col mb-1">
+                                <span className="font-bold text-lg text-white font-mono break-all">{address}</span>
+                                <span className="text-xs text-gray-500 cursor-pointer hover:text-white" onClick={() => {
+                                    navigator.clipboard.writeText(address);
+                                    console.log('Manually copied address:', address);
+                                    alert('Address copied to clipboard: ' + address);
+                                }}>
+                                    (Click to Copy & Verify)
+                                </span>
                             </div>
                             <div className="text-2xl font-bold text-white mb-1">
                                 {balance} <span className="text-sm font-normal text-gray-400">MONAD</span>
@@ -78,8 +85,8 @@ const WalletConnect = () => {
             </button>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-                    <div className="bg-dark-900 border border-dark-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center z-[100] pt-24 px-4" onClick={() => setShowModal(false)}>
+                    <div className="bg-dark-900 border border-dark-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                         <div className="p-6 border-b border-dark-800 flex justify-between items-center">
                             <h2 className="text-xl font-bold text-white">Connect Wallet</h2>
                             <button
