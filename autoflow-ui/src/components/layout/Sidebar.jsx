@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ListTodo, Server, CreditCard, BarChart3, Settings, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { LayoutDashboard, ListTodo, Server, CreditCard, BarChart3, Settings, Menu, X } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
 const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
@@ -14,11 +14,23 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   ];
 
   const getSidebarClass = () => {
-    const base = "fixed left-0 top-0 h-screen bg-dark-900 border-r border-dark-800 transition-all duration-300 z-40 flex flex-col ";
+    // Base: Mobile is fixed via mobileVisibility logic. Desktop is static/relative in flex container.
+    // We remove 'fixed left-0 top-0' for desktop by handling it differently.
+
+    const base = "h-screen bg-dark-900 border-r border-dark-800 transition-all duration-300 z-40 flex flex-col ";
     const width = collapsed ? 'w-20' : 'w-64';
-    // Mobile: hidden by default, shown when mobileOpen is true
-    const mobileVisibility = mobileOpen ? 'translate-x-0' : '-translate-x-full';
-    return base + width + " lg:translate-x-0 " + mobileVisibility;
+    const mobileClasses = "fixed left-0 top-0 lg:static "; // Static on desktop to participate in flex flow
+
+    // Mobile visibility:
+    // If mobileOpen: translate-x-0
+    // If !mobileOpen: -translate-x-full (BUT only on mobile screens)
+    // On Desktop (lg): always translate-x-0 (reset transform)
+
+    const visibilityClass = mobileOpen
+      ? "translate-x-0"
+      : "-translate-x-full lg:translate-x-0";
+
+    return `${base} ${width} ${mobileClasses} ${visibilityClass}`;
   };
 
   const getLinkClass = (isActive) => {
@@ -44,8 +56,8 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
       )}
 
       <aside className={getSidebarClass()}>
-        {/* Logo Area */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-dark-800">
+        {/* Logo Area with Toggle */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-dark-800">
           <div className="flex items-center">
             {/* Logo Image */}
             <img
@@ -59,12 +71,19 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
               </span>
             )}
           </div>
-          {/* Mobile close button */}
+
+          {/* Toggle button - hamburger icon at top */}
           <button
-            className="lg:hidden p-2 text-gray-400 hover:text-white"
-            onClick={() => setMobileOpen(false)}
+            onClick={() => {
+              if (mobileOpen) {
+                setMobileOpen(false);
+              } else {
+                setCollapsed(!collapsed);
+              }
+            }}
+            className="p-2 text-gray-400 hover:text-white hover:bg-dark-800 rounded-lg transition-colors"
           >
-            <X size={20} />
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
@@ -82,23 +101,13 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
 
               {/* Tooltip for collapsed state */}
               {collapsed && (
-                <div className="absolute left-20 bg-dark-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-dark-700 ml-2">
+                <div className="absolute left-20 bg-dark-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity border border-dark-700 ml-2 whitespace-nowrap z-50">
                   {item.label}
                 </div>
               )}
             </NavLink>
           ))}
         </nav>
-
-        {/* Collapse Toggle - hidden on mobile */}
-        <div className="p-4 border-t border-dark-800 hidden lg:block">
-          <button
-            onClick={() => setCollapsed(!collapsed)}
-            className="w-full flex items-center justify-center p-2 rounded-lg bg-dark-800 text-gray-400 hover:bg-dark-700 hover:text-white transition-colors"
-          >
-            {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-          </button>
-        </div>
       </aside>
     </>
   );

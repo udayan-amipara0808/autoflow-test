@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Cpu, Zap, Clock, DollarSign, Database, Code, Globe, AlertCircle, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 import { useWallet } from '../../hooks/useWallet';
 import { ethers } from 'ethers';
+import { addTask } from '../../utils/taskStorage';
 
 // EscrowContract deployed on Monad Testnet
 const ESCROW_CONTRACT_ADDRESS = '0x9829F1Ff048CC027424330AB6d7DE73Ed62D9F36';
@@ -107,6 +108,21 @@ const TaskSubmissionForm = () => {
                 type: 'success',
                 message: 'Task submitted & escrow locked!',
                 txHash: receipt.hash
+            });
+
+            // Save task to localStorage so it appears in TaskMonitor
+            addTask({
+                type: formData.type,
+                description: formData.description,
+                escrowAmount: calculateEscrow(),
+                priority: formData.priority,
+                cpu: formData.cpu,
+                ram: formData.ram,
+                gpu: formData.gpu,
+                txHash: receipt.hash,
+                escrowId: escrowId,
+                status: 'Pending',
+                progress: 0
             });
 
             // Reset form after successful submission

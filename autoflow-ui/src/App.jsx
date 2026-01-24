@@ -20,6 +20,7 @@ import EscrowPanel from './components/payments/EscrowPanel';
 import AgentProfile from './components/agent/AgentProfile';
 import AgentAnalytics from './components/agent/AgentAnalytics';
 import OrchestratorDebug from './components/admin/OrchestratorDebug';
+import SettingsPage from './components/settings/SettingsPage';
 
 // --- Pages ---
 
@@ -119,14 +120,7 @@ const AnalyticsPage = () => (
   </div>
 );
 
-const SettingsPage = () => (
-  <div className="space-y-6 p-6 bg-dark-900 border border-dark-700 rounded-xl">
-    <h2 className="text-2xl font-bold text-white mb-6">Settings</h2>
-    <div className="p-4 bg-dark-800 rounded-lg text-gray-400 text-center">
-      Settings module loaded. (Placeholder for advanced config)
-    </div>
-  </div>
-);
+
 
 const App = () => {
   return (
