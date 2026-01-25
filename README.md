@@ -95,3 +95,10 @@ autoflow/
 
 ## 🛡️ License
 MIT
+
+## Contacct info
+Team leader : Divyanshu Tomar :- 9202193079
+Team Member : Amipara Udayan Kishorbhai :- 9773031244
+Team Member : Priyanshu Gupta :- 6307137876
+
+### College name MNIT Jaipur
